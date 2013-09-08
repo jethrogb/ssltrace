@@ -20,7 +20,6 @@
 #include "ssltrace.h"
 
 #include <openssl/ssl.h>
-#include <stdlib.h>
 
 #define min(a,b) (((a)<(b))?(a):(b))
 static void openssl_dump_session(SSL* ssl)

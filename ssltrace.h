@@ -22,6 +22,8 @@
 
 #define _GNU_SOURCE
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <dlfcn.h>
 
 #define SSLTRACE "ssltrace"
@@ -35,6 +37,7 @@
 	if (!_##name) \
 	{ \
 		fprintf(stderr,SSLTRACE ": Unable to resolve symbol " #name "\n"); \
+		exit(1); \
 	}
 
 void ssltrace_trace_sessionid(unsigned char* sessionid, unsigned int sessionid_length, unsigned char* masterkey, unsigned int masterkey_length);
