@@ -3,6 +3,11 @@ ssltrace
 
 ssltrace hooks an application's SSL libraries to record keying data of all SSL connections. Currently, this data is outputted on stderr in a Wireshark-compatible format.
 
+Supported SSL libraries:
+
+  * OpenSSL
+  * NSS
+
 Building
 --------
 
@@ -10,9 +15,10 @@ Dependencies:
 
   * OpenSSL headers
   * NSS headers
+  * NSPR (Netscape Portable Runtime) headers
   * NSS debug symbols for each NSS library you want to trace
 
-NSS internal structures defined in public headers. If you want to trace NSS, you'll need to use GDB to figure out the definition of certain internal NSS structures, and modify ``nssimpl.h`` to match. Note that you might have multiple versions of NSS on your system, and each of these could have different internal structures. For example, on Ubuntu, Firefox ships it's own NSS libraries in ``/usr/lib/firefox``.
+NSS internal structures are not defined in public headers. If you want to trace NSS, you'll need to use GDB to figure out the definition of certain internal NSS structures, and modify ``nssimpl.h`` to match. Note that you might have multiple versions of NSS on your system, and each of these could have different internal structures. For example, on Ubuntu, Firefox ships it's own NSS libraries in ``/usr/lib/firefox``.
 
 After this, run ``make``.
 
