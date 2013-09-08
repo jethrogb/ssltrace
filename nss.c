@@ -98,9 +98,9 @@ void nss_SSLHandshakeCallback(PRFileDesc *fd,void *client_data)
 	{
 		SECItem* key;
 		ssl_GetSpecReadLock(ss); // This is what they do in SSL_ExportKeyingMaterial
-		PK11_ExtractKeyValue(ss->ssl3._.cwSpec._->master_secret);
-		key=PK11_GetKeyData(ss->ssl3._.cwSpec._->master_secret);
-		ssltrace_trace_clientrandom(ss->ssl3._.hs._.client_random.rand, sizeof(ss->ssl3._.hs._.client_random.rand), key->data, key->len);
+		PK11_ExtractKeyValue(ss->ssl3._.cwSpec._->master_secret._);
+		key=PK11_GetKeyData(ss->ssl3._.cwSpec._->master_secret._);
+		ssltrace_trace_clientrandom(ss->ssl3._.hs._.client_random._.rand._, sizeof(ss->ssl3._.hs._.client_random._.rand._), key->data, key->len);
 		ssl_ReleaseSpecReadLock(ss);
 	}
 }

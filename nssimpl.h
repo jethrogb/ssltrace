@@ -55,42 +55,54 @@
     (PZ_InMonitor((ss)->recvBufLock._))
 
 #define ssl_GetSpecReadLock(ss)		\
-    { if (!ss->opt._.noLocks) NSSRWLock_LockRead((ss)->specLock._); }
+    { if (!ss->opt._.noLocks._) NSSRWLock_LockRead((ss)->specLock._); }
 #define ssl_ReleaseSpecReadLock(ss)	\
-    { if (!ss->opt._.noLocks) NSSRWLock_UnlockRead((ss)->specLock._); }
+    { if (!ss->opt._.noLocks._) NSSRWLock_UnlockRead((ss)->specLock._); }
 
 #define ssl_Get1stHandshakeLock(ss)     \
-    { if (!ss->opt._.noLocks) { \
+    { if (!ss->opt._.noLocks._) { \
 	  PORT_Assert(PZ_InMonitor((ss)->firstHandshakeLock._) || \
 		      !ssl_HaveRecvBufLock(ss)); \
 	  PZ_EnterMonitor((ss)->firstHandshakeLock._); \
       } }
 #define ssl_Release1stHandshakeLock(ss) \
-    { if (!ss->opt._.noLocks) PZ_ExitMonitor((ss)->firstHandshakeLock._); }
+    { if (!ss->opt._.noLocks._) PZ_ExitMonitor((ss)->firstHandshakeLock._); }
 
 #define ssl_GetSSL3HandshakeLock(ss)	\
-    { if (!ss->opt._.noLocks) { \
+    { if (!ss->opt._.noLocks._) { \
 	  PORT_Assert(!ssl_HaveXmitBufLock(ss)); \
 	  PZ_EnterMonitor((ss)->ssl3HandshakeLock._); \
       } }
 #define ssl_ReleaseSSL3HandshakeLock(ss) \
-    { if (!ss->opt._.noLocks) PZ_ExitMonitor((ss)->ssl3HandshakeLock._); }
+    { if (!ss->opt._.noLocks._) PZ_ExitMonitor((ss)->ssl3HandshakeLock._); }
 
 
 
 typedef struct {
-	char __[OFFSET_ssl3CipherSpec_master_secret];
-	PK11SymKey *master_secret;
+	union {
+		struct {
+			char __[OFFSET_ssl3CipherSpec_master_secret];
+			PK11SymKey *_;
+		} master_secret;
+	};
 } _ssl3CipherSpec;
 
 typedef struct {
-	char __[OFFSET_SSL3Random_rand];
-	unsigned char rand[SIZE_SSL3Random_rand];
+	union {
+		struct {
+			char __[OFFSET_SSL3Random_rand];
+			unsigned char _[SIZE_SSL3Random_rand];
+		} rand;
+	};
 } _SSL3Random;
 
 typedef struct {
-	char __[OFFSET_SSL3HandshakeState_client_random];
-	_SSL3Random client_random;
+	union {
+		struct {
+			char __[OFFSET_SSL3HandshakeState_client_random];
+			_SSL3Random _;
+		} client_random;
+	};
 } _SSL3HandshakeState;
 
 typedef struct {
@@ -107,9 +119,13 @@ typedef struct {
 } _ssl3State;
 
 typedef struct {
-	char __[OFFSET_sslOptions_noLocks];
-	unsigned int __b : BITOFF_sslOptions_noLocks;
-	unsigned int noLocks : 1;
+	union {
+		struct {
+			char __[OFFSET_sslOptions_noLocks];
+			unsigned int __b : BITOFF_sslOptions_noLocks;
+			unsigned int _ : 1;
+		} noLocks;
+	};
 } _sslOptions;
 
 typedef struct {
