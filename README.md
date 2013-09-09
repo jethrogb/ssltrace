@@ -6,7 +6,10 @@ ssltrace hooks an application's SSL libraries to record keying data of all SSL c
 Supported SSL libraries:
 
   * OpenSSL
-  * NSS
+  * NSS [1]
+  * GnuTLS
+
+[1] Recent versions of NSS also support the SSLKEYLOGFILE environment variable, which might be easier to use.
 
 Building
 --------
@@ -17,8 +20,12 @@ Dependencies:
   * NSS headers
   * NSPR (Netscape Portable Runtime) headers
   * NSS debug symbols for each NSS library you want to trace
+  * GnuTLS headers
+  * GnuTLS debug symbols
 
 NSS internal structures are not defined in public headers. If you want to trace NSS, you'll need to use GDB to figure out the definition of certain internal NSS structures, and modify ``nssimpl.h`` to match. Note that you might have multiple versions of NSS on your system, and each of these could have different internal structures. For example, on Ubuntu, Firefox ships it's own NSS libraries in ``/usr/lib/firefox``.
+
+GnuTLS internal structures are similarly not defined in public headers, but they don't change as much as NSS's.
 
 After this, run ``make``.
 
@@ -48,7 +55,7 @@ LD_PRELOAD=./ssltrace.so openssl s_server -accept SOME_PORT -key KEY_FILE -cert 
 Testing NSS
 -----------
 
-We will use the NSS tools ``certutil``, ``tstclnt`` and ``selfserv``. These might or might not come with your distribution's NSS package [1].
+We will use the NSS tools ``certutil``, ``tstclnt`` and ``selfserv``. These might or might not come with your distribution's NSS package [2].
 
 First, you need to create a certificate database in some directory:
 
@@ -74,7 +81,7 @@ Run the ``selfserv`` SSL server:
 LD_PRELOAD=./ssltrace.so selfserv -v -n AN_IDENTIFIER -p SOME_PORT -d /PATH/TO/YOUR/NSS/DB
 ```
 
-[1]: On Ubuntu (and probably Debian-flavored distributions), ``certutil`` is in ``libnss3-tools``, but for ``tstclnt`` and ``selfserv`` do;
+[2]: On Ubuntu (and probably Debian-flavored distributions), ``certutil`` is in ``libnss3-tools``, but for ``tstclnt`` and ``selfserv`` do;
 ```
 apt-get source nss
 apt-get build-dep nss
@@ -82,3 +89,22 @@ cd nss-*
 debuild -i -us -uc -b
 ```
 Find your binaries in ``mozilla/dist/bin/``. Don't ask me why they're not included in the package while they obviously do get built by default.
+
+Testing GnuTLS
+---------------
+
+We can just use the ``gnutls-cli`` and ``gnutls-serv`` command-line utilities.
+
+Use ``gnutls-cli`` to make an SSL connection as a client:
+
+```
+LD_PRELOAD=./ssltrace.so gnutls-cli --insecure -p SOME_PORT SOME_HOST
+```
+
+The GnuTLS server uses the same type of keys as OpenSSL, see above on how to generate them.
+
+Run the ``gnutls-serv`` SSL server:
+
+```
+LD_PRELOAD=./ssltrace.so gnutls-serv -p SOME_PORT --x509keyfile KEY_FILE --x509certfile CERT_FILE
+```
