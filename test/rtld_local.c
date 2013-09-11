@@ -17,25 +17,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef SSLTRACE_H
-#define SSLTRACE_H
+/*
+ * Compile: gcc test.c -ldl
+ * Run: LD_PRELOAD=../ssltrace.so ./a.out
+ * Expected: SEGFAULT
+ * Failure: Error message "Unable to resolve symbol gnutls_handshake".
+ */
 
-#define SSLTRACE "ssltrace"
+#define _GNU_SOURCE
 
-#define WRAP(type,name,list) \
-	static type (*_##name)list = NULL; \
-	extern type name list
+#include <dlfcn.h>
 
-#define WRAPINIT(name) \
-	if (!_##name) _##name=ssltrace_dlsym(#name); \
-	if (!_##name) \
-	{ \
-		ssltrace_die("Unable to resolve symbol " #name); \
-	}
-
-void *ssltrace_dlsym(const char *symbol);
-void ssltrace_die(const char* message);
-void ssltrace_trace_sessionid(unsigned char* sessionid, unsigned int sessionid_length, unsigned char* masterkey, unsigned int masterkey_length);
-void ssltrace_trace_clientrandom(unsigned char* clientrandom, unsigned int clientrandom_length, unsigned char* masterkey, unsigned int masterkey_length);
-
-#endif // SSLTRACE_H
+int main(void)
+{
+	dlopen("libgnutls.so",RTLD_LOCAL|RTLD_NOW);
+	int (*fp)(void*)=dlsym(RTLD_DEFAULT,"gnutls_handshake");
+	fp(0);
+	return 0;
+}
