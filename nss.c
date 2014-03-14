@@ -42,12 +42,12 @@ static PRDescIdentity nss_GetIdentityForName(PRFileDesc *fd,const char* name)
 
 	for (layer = fd; layer != NULL; layer = layer->lower)
 	{
-		if (strsame("SSL",PR_GetNameForIdentity(layer->identity))) return layer->identity;
+		if (strsame(name,PR_GetNameForIdentity(layer->identity))) return layer->identity;
 	}
 	
 	for (layer = fd; layer != NULL; layer = layer->higher)
 	{
-		if (strsame("SSL",PR_GetNameForIdentity(layer->identity))) return layer->identity;
+		if (strsame(name,PR_GetNameForIdentity(layer->identity))) return layer->identity;
 	}
 	
 	return PR_INVALID_IO_LAYER;
