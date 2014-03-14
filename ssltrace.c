@@ -115,6 +115,7 @@ void *ssltrace_dlsym(const char *symbol)
 void ssltrace_die(const char* message)
 {
 	fprintf(ssltrace_log_handle(),SSLTRACE ": %s\n",message);
+	fflush(ssltrace_log_handle());
 	exit(1);
 }
 
@@ -134,6 +135,7 @@ void ssltrace_trace_sessionid(unsigned char* sessionid, unsigned int sessionid_l
 	ssltrace_eprintf_snx("RSA Session-ID:",sessionid,sessionid_length);
 	ssltrace_eprintf_snx(" Master-Key:",masterkey,masterkey_length);
 	putc('\n',ssltrace_log_handle());
+	fflush(ssltrace_log_handle());
 }
 
 void ssltrace_trace_clientrandom(unsigned char* clientrandom, unsigned int clientrandom_length, unsigned char* masterkey, unsigned int masterkey_length)
@@ -141,4 +143,5 @@ void ssltrace_trace_clientrandom(unsigned char* clientrandom, unsigned int clien
 	ssltrace_eprintf_snx("CLIENT_RANDOM ",clientrandom,clientrandom_length);
 	ssltrace_eprintf_snx(" ",masterkey,masterkey_length);
 	putc('\n',ssltrace_log_handle());
+	fflush(ssltrace_log_handle());
 }
