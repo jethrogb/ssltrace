@@ -21,6 +21,8 @@
 #define SSLTRACE_H
 
 #define SSLTRACE "ssltrace"
+#define SSLTRACE_LOG "SSLTRACE_LOG"
+#define SSLTRACE_CONF_D "/etc/ssltrace.d/"
 
 #define WRAP(type,name,list) \
 	static type (*_##name)list = NULL; \

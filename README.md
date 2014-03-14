@@ -1,7 +1,7 @@
 ssltrace
 ========
 
-ssltrace hooks an application's SSL libraries to record keying data of all SSL connections. Currently, this data is outputted on stderr in a Wireshark-compatible format.
+ssltrace hooks an application's SSL libraries to record keying data of all SSL connections. By default, this data is outputted on stderr in a Wireshark-compatible format.
 
 Supported SSL libraries:
 
@@ -28,6 +28,17 @@ NSS internal structures are not defined in public headers. If you want to trace 
 GnuTLS internal structures are similarly not defined in public headers, but they don't change as much as NSS's.
 
 After this, run ``make``.
+
+Configuring output
+------------------
+
+If the environment variable SSLTRACE_LOG is set, ssltrace will try to use it as a filename to open for append and log there. If opening the file fails, ssltrace will print a message on stderr and exit.
+
+If the file /etc/ssltrace.d/logfile exists, ssltrace will try to use the contents as a filename to open for append and log there. If opening the file fails, ssltrace will print a message on stderr and exit.
+
+Otherwise, ssltrace will log on stderr.
+
+Note that ssltrace won't try to open any files until it actually has to log something (which is usually when the first SSL connection gets initiated).
 
 Testing OpenSSL
 ---------------
