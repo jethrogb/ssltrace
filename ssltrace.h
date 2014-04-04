@@ -26,10 +26,10 @@
 
 #define WRAP(type,name,list) \
 	static type (*_##name)list = NULL; \
-	extern type name list
+	extern "C" type name list
 
 #define WRAPINIT(name) \
-	if (!_##name) _##name=ssltrace_dlsym(#name); \
+	if (!_##name) _##name=(decltype(_##name))ssltrace_dlsym(#name); \
 	if (!_##name) \
 	{ \
 		ssltrace_die("Unable to resolve symbol " #name); \

@@ -1,6 +1,6 @@
 /**
  * ssltrace -  hook SSL libraries to record keying data of SSL connections
- * Copyright (C) 2013  Jethro G. Beekman
+ * Copyright (C) 2014  Jethro G. Beekman
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,21 +17,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "ssltrace.h"
+/* magic: access struct members at dynamic offsets.
+ * See magic3.hpp for documentation. */
 
-#include <gnutls/gnutls.h>
-#include "gnutlsimpl.h"
+#include <search.h>
+#include <string.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <limits.h>
+#include <type_traits>
 
-WRAP(int,gnutls_handshake,(gnutls_session_t session))
-{
-	WRAPINIT(gnutls_handshake);
-	
-	int ret=_gnutls_handshake(session);
-	
-	if (ret==GNUTLS_E_SUCCESS)
-	{
-		ssltrace_trace_clientrandom(((_gnutls_session_t)session)->security_parameters._.client_random._,SIZE_security_parameters_st_client_random,((_gnutls_session_t)session)->security_parameters._.master_secret._,SIZE_security_parameters_st_master_secret);
-	}
-	
-	return ret;
-}
+#define BEGIN_ACCESSOR(s)
+#define MEMBER(s,type,name) ACCESSOR_ID_##s##_##name,
+#define END_ACCESSOR(s)
+#define TYPEDEF(a,b)
+namespace __accessor {
+	namespace __internal {
+		enum {

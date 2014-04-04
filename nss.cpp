@@ -1,6 +1,6 @@
 /**
  * ssltrace -  hook SSL libraries to record keying data of SSL connections
- * Copyright (C) 2013  Jethro G. Beekman
+ * Copyright (C) 2013,2014  Jethro G. Beekman
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,41 @@
 #include <nss/nssrwlk.h>
 #include <stdlib.h>
 
+namespace nsstypes
+{
+#define __accessor_exit ssltrace_die
+#include "magic1.hpp"
+#include "nsstypes.h" //enum declarations
+#include "magic2.hpp"
+#include "nsstypes.h" //parameter names array
+#include "magic3.hpp"
+#include "nsstypes.h" //struct definitions
+#include "magic4.hpp"
+};
+using namespace nsstypes::__accessor;
+
 #include "nssimpl.h"
+
+static __attribute__((constructor)) void init_offsets()
+{
+	//libnss3:amd64=2:3.15.4-0ubuntu0.13.10.2
+	__set_offset("ssl3CipherSpec.master_secret",     0x80,0/*TODO*/);
+	__set_offset("SSL3Random.rand",                     0,32);
+	__set_offset("SSL3HandshakeState.client_random", 0x20,0/*TODO*/);
+	__set_offset("ssl3State.cwSpec",                 0x10,0/*TODO*/);
+	__set_offset("ssl3State.hs",                     0x60,0/*TODO*/);
+	__set_offset("sslOptions.noLocks",               0x18,16,0);
+	__set_offset("sslSocket.fd",                        0,0/*TODO*/);
+	__set_offset("sslSocket.opt",                    0x10,0/*TODO*/);
+	__set_offset("sslSocket.handshakeCallback",     0x308,0/*TODO*/);
+	__set_offset("sslSocket.handshakeCallbackData", 0x310,0/*TODO*/);
+	__set_offset("sslSocket.recvBufLock",           0x360,0/*TODO*/);
+	__set_offset("sslSocket.xmitBufLock",           0x368,0/*TODO*/);
+	__set_offset("sslSocket.firstHandshakeLock",    0x370,0/*TODO*/);
+	__set_offset("sslSocket.ssl3HandshakeLock",     0x378,0/*TODO*/);
+	__set_offset("sslSocket.specLock",              0x380,0/*TODO*/);
+	__set_offset("sslSocket.ssl3",                  0x608,0/*TODO*/);
+}
 
 static int strsame(const char* a,const char* b)
 {
@@ -54,10 +88,10 @@ static PRDescIdentity nss_GetIdentityForName(PRFileDesc *fd,const char* name)
 }
 
 // Adapted from sslsock.c
-_sslSocket* ssl_FindSocket(PRFileDesc *fd)
+sslSocket* ssl_FindSocket(PRFileDesc *fd)
 {
 	PRFileDesc *layer;
-	_sslSocket *ss;
+	sslSocket *ss;
 	static PRDescIdentity ssl_layer_id=PR_INVALID_IO_LAYER;
 	if (ssl_layer_id==PR_INVALID_IO_LAYER)
 	{
@@ -74,8 +108,8 @@ _sslSocket* ssl_FindSocket(PRFileDesc *fd)
 		return NULL;
 	}
 
-	ss = (_sslSocket *)layer->secret;
-	ss->fd._ = layer;
+	ss = (sslSocket *)layer->secret;
+	ss->M(fd) = layer;
 	return ss;
 }
 
@@ -93,14 +127,14 @@ void nss_SSLHandshakeCallback(PRFileDesc *fd,void *client_data)
 		// TODO: if this callback is guaranteed to be only called once, we can
 		// free(client_data) now
 	}
-	_sslSocket*ss=ssl_FindSocket(fd);
+	sslSocket*ss=ssl_FindSocket(fd);
 	if (ss)
 	{
 		SECItem* key;
 		ssl_GetSpecReadLock(ss); // This is what they do in SSL_ExportKeyingMaterial
-		PK11_ExtractKeyValue(ss->ssl3._.cwSpec._->master_secret._);
-		key=PK11_GetKeyData(ss->ssl3._.cwSpec._->master_secret._);
-		ssltrace_trace_clientrandom(ss->ssl3._.hs._.client_random._.rand._, sizeof(ss->ssl3._.hs._.client_random._.rand._), key->data, key->len);
+		PK11_ExtractKeyValue(ss->M(ssl3).M(cwSpec)->M(master_secret));
+		key=PK11_GetKeyData(ss->M(ssl3).M(cwSpec)->M(master_secret));
+		ssltrace_trace_clientrandom(ss->M(ssl3).M(hs).M(client_random).M(rand), S(ss->M(ssl3).M(hs).M(client_random).rand), key->data, key->len);
 		ssl_ReleaseSpecReadLock(ss);
 	}
 }
@@ -111,7 +145,7 @@ WRAP(SECStatus,SSL_HandshakeCallback,(PRFileDesc *fd,SSLHandshakeCallback cb,voi
 	
 	if (cb)
 	{
-		SSLHandshakeCallbackClosure* save=malloc(sizeof(SSLHandshakeCallbackClosure));
+		SSLHandshakeCallbackClosure* save=(SSLHandshakeCallbackClosure*)malloc(sizeof(SSLHandshakeCallbackClosure));
 		save->cb=cb;
 		save->client_data=client_data;
 		client_data=save;
@@ -132,7 +166,7 @@ WRAP(PRFileDesc*,SSL_ImportFD,(PRFileDesc *model, PRFileDesc *fd))
 	
 	PRFileDesc* ret=_SSL_ImportFD(model,fd);
 
-	_sslSocket* ss=ssl_FindSocket(ret);
+	sslSocket* ss=ssl_FindSocket(ret);
 	
 	SSLHandshakeCallbackClosure save={0};
 
@@ -140,11 +174,11 @@ WRAP(PRFileDesc*,SSL_ImportFD,(PRFileDesc *model, PRFileDesc *fd))
 	ssl_Get1stHandshakeLock(ss);
 	ssl_GetSSL3HandshakeLock(ss);
 	
-	if (ss->handshakeCallback._!=NULL && ss->handshakeCallback._!=&nss_SSLHandshakeCallback)
+	if (ss->M(handshakeCallback)!=NULL && ss->M(handshakeCallback)!=&nss_SSLHandshakeCallback)
 	{
 		// We need to temporarily save the data, because we hold the locks
-		save.cb=ss->handshakeCallback._;
-		save.client_data=ss->handshakeCallbackData._;
+		save.cb=ss->M(handshakeCallback);
+		save.client_data=ss->M(handshakeCallbackData);
 	}
 	
 	ssl_ReleaseSSL3HandshakeLock(ss);

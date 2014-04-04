@@ -102,7 +102,7 @@ void *ssltrace_dlsym(const char *symbol)
 	{
 		static Dl_info dli={0};
 		DLIteratePhdrCallbackClosure data={symbol,0,&ret};
-		if (!dli.dli_fbase&&!dladdr(&ssltrace_dlsym,&dli))
+		if (!dli.dli_fbase&&!dladdr((void*)&ssltrace_dlsym,&dli))
 		{
 			ssltrace_die("Unable to find information about " SSLTRACE " module.");
 		}
@@ -119,7 +119,7 @@ void ssltrace_die(const char* message)
 	exit(1);
 }
 
-static void ssltrace_eprintf_snx(char* s, unsigned char* x, unsigned int n)
+static void ssltrace_eprintf_snx(const char* s, unsigned char* x, unsigned int n)
 {
 	unsigned int i;
 	
