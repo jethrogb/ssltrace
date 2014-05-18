@@ -1,6 +1,6 @@
 /**
  * ssltrace -  hook SSL libraries to record keying data of SSL connections
- * Copyright (C) 2013  Jethro G. Beekman
+ * Copyright (C) 2013,2014  Jethro G. Beekman
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
