@@ -14,20 +14,27 @@ Supported SSL libraries:
 Building
 --------
 
-Dependencies:
+Build dependencies:
 
+  * libdw
   * OpenSSL headers
   * NSS headers
   * NSPR (Netscape Portable Runtime) headers
-  * NSS debug symbols for each NSS library you want to trace
   * GnuTLS headers
-  * GnuTLS debug symbols
 
-NSS internal structures are not defined in public headers. If you want to trace NSS, you'll need to use GDB to figure out the definition of certain internal NSS structures, and modify ``nssimpl.h`` to match. Note that you might have multiple versions of NSS on your system, and each of these could have different internal structures. For example, on Ubuntu, Firefox ships it's own NSS libraries in ``/usr/lib/firefox``.
+After installing the dependencies, run ``make``.
 
-GnuTLS internal structures are similarly not defined in public headers, but they don't change as much as NSS's.
+Running
+-------
 
-After this, run ``make``.
+Run dependencies:
+
+  * libdw
+  * NSS/GnuTLS debug symbols
+
+NSS and GnuTLS internal structures are not defined in public headers. If you want to trace programs that use these libraries, you'll need to have the debugging symbols installed. Mozilla products such as Firefox have been known to ship with its own version of the NSS libraries.
+
+After installing the dependencies, run ``LD_PRELOAD=/path/to/ssltrace.so child-program``.
 
 Configuring output
 ------------------
