@@ -19,12 +19,11 @@
 
 #include "ssltrace.h"
 
-#define _GNU_SOURCE
-
 #include <dlfcn.h>
 #include <link.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
 
@@ -110,6 +109,16 @@ void *ssltrace_dlsym(const char *symbol)
 		dl_iterate_phdr(&ssltrace_dl_iterate_phdr_callback, &data);
 	}
 	return ret;
+}
+
+void ssltrace_debug(const char* fmt, ...)
+{
+	va_list ap;
+
+	fputs(SSLTRACE ": ",ssltrace_log_handle());
+	va_start(ap, fmt);vfprintf(stderr, fmt, ap);va_end(ap);
+	fputc('\n',ssltrace_log_handle());
+	fflush(ssltrace_log_handle());
 }
 
 void ssltrace_die(const char* message)

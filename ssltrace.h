@@ -35,8 +35,13 @@
 		ssltrace_die("Unable to resolve symbol " #name); \
 	}
 
+#define WRAPINIT_FN(name,fn) \
+	WRAPINIT(name); \
+	fn((void*)_##name);
+
 void *ssltrace_dlsym(const char *symbol);
 void ssltrace_die(const char* message);
+void ssltrace_debug(const char* fmt, ...);
 void ssltrace_trace_sessionid(unsigned char* sessionid, unsigned int sessionid_length, unsigned char* masterkey, unsigned int masterkey_length);
 void ssltrace_trace_clientrandom(unsigned char* clientrandom, unsigned int clientrandom_length, unsigned char* masterkey, unsigned int masterkey_length);
 

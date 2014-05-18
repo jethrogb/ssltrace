@@ -172,10 +172,10 @@
 				}
 			}
 
-			operator T&()
+			T* operator&()
 			{
-				if (bitfieldTable[parameter]) __accessor_exit("Attempted to obtain a reference/pointer to a bitfield");
-				return *(T*)this;
+				if (bitfieldTable[parameter]) __accessor_exit("Attempted to obtain a pointer to a bitfield");
+				return (T*)this;
 			}
 
 			BitfieldAccessor<T,parameter>& operator=(const T v)

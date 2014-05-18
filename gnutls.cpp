@@ -18,8 +18,10 @@
  */
 
 #include "ssltrace.h"
+#include "symbols.h"
 
 #include <gnutls/gnutls.h>
+#include <dlfcn.h>
 
 namespace gnutlstypes
 {
@@ -34,17 +36,26 @@ namespace gnutlstypes
 };
 using namespace gnutlstypes::__accessor;
 
-static __attribute__((constructor)) void init_offsets()
+static void load_offsets(void* fn)
 {
-	//libgnutls26:amd64=2.12.23-1ubuntu4.2
-	__set_offset("security_parameters_st.master_secret",   0x16,48);
-	__set_offset("security_parameters_st.client_random",   0x46,32);
-	__set_offset("gnutls_session_int.security_parameters",    0,0/*TODO*/);
+	static bool load=false;
+	if (!load)
+	{
+		Dl_info dli={0};
+		if (dladdr(fn,&dli)==0)
+		{
+			ssltrace_die("Unable to get libgnutls.so filename");
+		}
+		else
+		{
+			load=symbols_load_all(dli.dli_fname,__get_parameter_names(),ssltrace_debug,__set_offset,__set_offset);
+		}
+	}
 }
 
 WRAP(int,gnutls_handshake,(::gnutls_session_t session))
 {
-	WRAPINIT(gnutls_handshake);
+	WRAPINIT_FN(gnutls_handshake,load_offsets);
 	
 	int ret=_gnutls_handshake(session);
 	

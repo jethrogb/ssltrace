@@ -18,11 +18,14 @@
  */
 
 #include "ssltrace.h"
+#include "symbols.h"
 
 #include <nss/ssl.h>
 #include <nss/pk11pub.h>
 #include <nss/nssrwlk.h>
+#include <dlfcn.h>
 #include <stdlib.h>
+#include <string.h>
 
 namespace nsstypes
 {
@@ -39,25 +42,21 @@ using namespace nsstypes::__accessor;
 
 #include "nssimpl.h"
 
-static __attribute__((constructor)) void init_offsets()
+static void load_offsets(void* fn)
 {
-	//libnss3:amd64=2:3.15.4-0ubuntu0.13.10.2
-	__set_offset("ssl3CipherSpec.master_secret",     0x80,0/*TODO*/);
-	__set_offset("SSL3Random.rand",                     0,32);
-	__set_offset("SSL3HandshakeState.client_random", 0x20,0/*TODO*/);
-	__set_offset("ssl3State.cwSpec",                 0x10,0/*TODO*/);
-	__set_offset("ssl3State.hs",                     0x60,0/*TODO*/);
-	__set_offset("sslOptions.noLocks",               0x18,16,0);
-	__set_offset("sslSocket.fd",                        0,0/*TODO*/);
-	__set_offset("sslSocket.opt",                    0x10,0/*TODO*/);
-	__set_offset("sslSocket.handshakeCallback",     0x308,0/*TODO*/);
-	__set_offset("sslSocket.handshakeCallbackData", 0x310,0/*TODO*/);
-	__set_offset("sslSocket.recvBufLock",           0x360,0/*TODO*/);
-	__set_offset("sslSocket.xmitBufLock",           0x368,0/*TODO*/);
-	__set_offset("sslSocket.firstHandshakeLock",    0x370,0/*TODO*/);
-	__set_offset("sslSocket.ssl3HandshakeLock",     0x378,0/*TODO*/);
-	__set_offset("sslSocket.specLock",              0x380,0/*TODO*/);
-	__set_offset("sslSocket.ssl3",                  0x608,0/*TODO*/);
+	static bool load=false;
+	if (!load)
+	{
+		Dl_info dli={0};
+		if (dladdr(fn,&dli)==0)
+		{
+			ssltrace_die("Unable to get libssl3.so filename");
+		}
+		else
+		{
+			load=symbols_load_all(dli.dli_fname,__get_parameter_names(),ssltrace_debug,__set_offset,__set_offset);
+		}
+	}
 }
 
 static int strsame(const char* a,const char* b)
@@ -141,7 +140,7 @@ void nss_SSLHandshakeCallback(PRFileDesc *fd,void *client_data)
 
 WRAP(SECStatus,SSL_HandshakeCallback,(PRFileDesc *fd,SSLHandshakeCallback cb,void *client_data))
 {
-	WRAPINIT(SSL_HandshakeCallback);
+	WRAPINIT_FN(SSL_HandshakeCallback,load_offsets);
 	
 	if (cb)
 	{
@@ -162,7 +161,7 @@ WRAP(SECStatus,SSL_HandshakeCallback,(PRFileDesc *fd,SSLHandshakeCallback cb,voi
 
 WRAP(PRFileDesc*,SSL_ImportFD,(PRFileDesc *model, PRFileDesc *fd))
 {
-	WRAPINIT(SSL_ImportFD);
+	WRAPINIT_FN(SSL_ImportFD,load_offsets);
 	
 	PRFileDesc* ret=_SSL_ImportFD(model,fd);
 
