@@ -88,6 +88,11 @@
  *   #define M(v) v
  *   #define S(v) sizeof(v)
  * 
+ * Currently, if you want to obtain a reference to an integral type, you'll need
+ * to obtain a pointer first and then dereference it:
+ * 
+ *   int& ref=*&a.M(int_member)
+ * 
  * ===============
  * == Internals ==
  * ===============

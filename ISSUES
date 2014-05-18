@@ -10,4 +10,8 @@ NSS
 ---
 
   * Memory leak when traced program uses SSL_HandshakeCallback
-  * Data structures are not standardized, need to change nssimpl.h
+
+GnuTLS
+------
+
+No known issues.
