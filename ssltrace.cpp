@@ -116,7 +116,7 @@ void ssltrace_debug(const char* fmt, ...)
 	va_list ap;
 
 	fputs(SSLTRACE ": ",ssltrace_log_handle());
-	va_start(ap, fmt);vfprintf(stderr, fmt, ap);va_end(ap);
+	va_start(ap, fmt);vfprintf(ssltrace_log_handle(), fmt, ap);va_end(ap);
 	fputc('\n',ssltrace_log_handle());
 	fflush(ssltrace_log_handle());
 }
