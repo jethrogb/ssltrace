@@ -165,7 +165,7 @@
 					bitfield_mask_t bitfield_mask=bit_mask(bitfieldTable[parameter]>>16);
 					uint16_t bitfield_offset=bitfieldTable[parameter]&0xffff;
 					T unsignedT=((*(bitfield_mask_t*)this)>>bitfield_offset)&bitfield_mask;
-					if (((bitfield_mask+1)>>1)&unsignedT) //negative
+					if (std::is_signed<T>::value && ((bitfield_mask+1)>>1)&unsignedT) //negative
 					{
 						unsignedT|=~bitfield_mask; //sign-extend
 					}
