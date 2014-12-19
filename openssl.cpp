@@ -38,6 +38,8 @@ WRAP(int,SSL_connect,(SSL *ssl))
 {
 	WRAPINIT(SSL_connect);
 	
+	if (!ssl->handshake_func) SSL_set_connect_state(ssl);
+
 	ssl->handshake_func=&SSL_connect;
 	
 	int ret=_SSL_connect(ssl);
@@ -52,6 +54,8 @@ WRAP(int,SSL_accept,(SSL *ssl))
 {
 	WRAPINIT(SSL_accept);
 	
+	if (!ssl->handshake_func) SSL_set_accept_state(ssl);
+
 	ssl->handshake_func=&SSL_accept;
 	
 	int ret=_SSL_accept(ssl);
