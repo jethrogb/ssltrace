@@ -22,6 +22,8 @@ Build dependencies:
   * NSPR (Netscape Portable Runtime) headers
   * GnuTLS headers
 
+For example, on Ubuntu 14.10: `sudo apt-get install libdw-dev libssl-dev libgnutls-dev libnss3-dev libnspr4-dev`
+
 After installing the dependencies, run ``make``.
 
 Running
@@ -31,6 +33,8 @@ Run dependencies:
 
   * libdw
   * NSS/GnuTLS debug symbols
+
+For example, on Ubuntu 14.10: `sudo apt-get install libdw1 libgnutls28-dbg`
 
 NSS and GnuTLS internal structures are not defined in public headers. If you want to trace programs that use these libraries, you'll need to have the debugging symbols installed. Mozilla products such as Firefox have been known to ship with its own version of the NSS libraries.
 
